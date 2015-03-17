@@ -1,14 +1,5 @@
-// Test for char in input
-// Test for the function in parameter
-// Test for the output
-
-// Right now - figure out the position at which the combinations will be stored in
-// Trying to return a list instead of matrix
-
-
 #include <Rcpp.h>
 #include <omp.h>
-#include <iostream>
 
 using namespace std;
 using namespace Rcpp;
@@ -42,6 +33,7 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 	NumericVector x(x_);
 	int m = as<int>(m_), n = as<int>(n_), nCm = as<int>(nCm_), chunksize = as<int>(chunksize_);
 	string sched = as<string>(sched_);
+
 
 	NumericMatrix retmat(m, nCm);
 	int combPos = 0; // the position of a combination in the output	
