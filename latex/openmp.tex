@@ -1,0 +1,31 @@
+\subsection{OpenMP}
+
+\subsubsection{Load Balancing}
+Initially, the program was parallelized by directingly using OpenMP's loop directive \texttt{for}. By using the \texttt{for} directive, we are allowing OpenMP to handle the distribution of the tasks to the threads. This makes it easier for the programmer; however, it is not the best way to distribute the tasks. For our program, it caused an extreme load imbalance. Upon The distribution of the task was heavily skewed such that the thread with lower id's generated far more combinations than the thread with higher id's. This is because for each element $i$ in the input vector $x$, the number of combinations that can be generated with $x_{i}$ is larger than that with $x_{i+1}$.\\
+\null
+In order to compensate for the load imbalance, the assignment of tasks to the threads was done in a wrap around manner. Using this method, for the first distribution, each thread will work on the element indexed in the same value as their id (e.g. thread 0 on $x[0]$, thread 1 on $x[1]$, and so on). Then, the following distribution depends on the total number of threads, the id of each thread, and the index of its previous assignment. With \texttt{nth} corresponding to the total number of threads and \texttt{me} corresponding to the thread id, the assignment following the initial distribution is determined using the equation:
+\begin{equation}
+next\_task = prev\_task + 2 * (nth - me - 1) + 1
+\end{equation}
+The distribution that will then follow the above depends on the id of each thread the index of the previous task. This next distribution is determined by the equation:
+\begin{equation}
+next\_task = prev\_task + 2 * me + 1
+\end{equation}
+The succeeding distributions alternates in using the two equations until the last distribution, which is for $n - m + 1$ or the last $x_{i}$ that can form a combination of size $m$ with the elements succeeding it.\\
+\null
+In this algorithm, each thread knows which indexes in $x$ to generate combinations for. The threads do not need to communicate with each other, avoiding huge overhead especially for large values of n.
+
+\subsubsection{Chunk Size}
+The equations from the section above implicitly defines the chunk size so that each thread gets assigned roughly the same number $x_{i}'s$ to work on. It is essentially the number of times task distributions occur in the load balance algorithm, which is roughly $(n-m+1)/nth$.
+
+\subsubsection{Cache Considerations}
+
+\subsubsection{Scheduling Policies}
+Additional optional arguments \texttt{schedule} and \texttt{chunksize} were added to the function, allowing the user to select between static, dynamic, and guided policies and any integer for the chunksize. If neither is provided, the default scheduling policy of our program is static, since we are both manually determining the chunk size and assigning the tasks to each thread. Dynamic and guided selections for scheduling make use of OpenMP's scheduling clauses.
+
+
+\subsubsection{Timing Comparisons of the Different Scheduling Policies}
+
+
+\subsubsection{Optimal Number of Threads}
+

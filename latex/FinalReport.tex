@@ -1,0 +1,69 @@
+\documentclass[12pt]{report}
+
+\usepackage{graphicx}
+\usepackage[cm]{fullpage}
+\usepackage{fixltx2e}
+\usepackage{hyperref}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{enumerate}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{framed}
+\usepackage{eurosym}
+\setcounter{secnumdepth}{3}
+\renewcommand\thesection{\arabic{section}}
+\renewcommand\thesubsection{\thesection.\arabic{subsection}}
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.7,0.7,0.7}
+\setlength{\oddsidemargin}{0.0in}
+\setlength{\evensidemargin}{0.0in}
+\setlength{\topmargin}{-0.25in}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+\setlength{\textwidth}{6.5in}
+\setlength{\textheight}{9.25in}
+\setlength{\parindent}{7mm}
+\setlength{\parskip}{0mm}
+\begin{document}
+\raggedright{
+
+\input{./titlepage.tex}
+
+\newpage
+%------------------- Body----------------------%
+
+\section{Objectve}
+
+\section{Function}
+
+\subsection{Description}
+
+\subsection{Reasons for Selection}
+
+\section{Parallel Implementations}
+
+%\input{./rsnow.tex}
+
+\input{./openmp.tex}
+
+%\input{./cuda.tex}
+
+\section{Timing Comparisons}
+
+\section{Conclusions}
+
+
+%---------------- End of Body ----------------------%
+
+
+%---------------- Appendix ----------------------%
+\newpage
+
+\appendix
+\section{Appendix}
+
+\input{appendix.tex}
+
+}
+\end{document}
