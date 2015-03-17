@@ -36,74 +36,123 @@ int next_comb(int *comb, int m, int n)
 	return 1;
 }
 
-RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP out)
+RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP chunksize_, SEXP out)
 {
 	// Convert SEXP variables to appropriate C++ types
 	NumericVector x(x_);
-	int m = as<int>(m_), n = as<int>(n_), nCm = as<int>(nCm_);
+	int m = as<int>(m_), n = as<int>(n_), nCm = as<int>(nCm_), chunksize = as<int>(chunksize_);
+	string sched = as<string>(sched_);
 
-	List retlist; // return list
+	NumericMatrix retmat(m, nCm);
+	int combPos = 0; // the position of a combination in the output	
+	
+	if (sched == "dynamic") {
+		omp_set_schedule(omp_sched_dynamic, chunksize);
+	}
+	else if (sched == "guided") {
+		omp_set_schedule(omp_sched_guided, chunksize);
+	}
 
-	#pragma omp parallel
-	{
-		// this thread id, total number of threads, combination indexes array
-		int me, nth, *comb, *combvec;
+	if (sched == "static") {
+		#pragma omp parallel
+		{
+			// this thread id, total number of threads, combination indexes array
+			int me, nth, *comb;
 
-		nth = omp_get_num_threads();
-		me = omp_get_thread_num();
+			nth = omp_get_num_threads();
+			me = omp_get_thread_num();
 
-		// array that will hold all of the possible combinations 
-		// of size m of the indexes
-		comb = new int[m]; 
-		combvec = new int[m];
+			// array that will hold all of the possible combinations 
+			// of size m of the indexes
+			comb = new int[m]; 
 
-		// initialize comb array
-		for (int i = 0; i < m; ++i) {
-			comb[i] = i;
-		}
-		
-		int temp_n = n;
-		int chunkNum = 1; // the number of chunk that has been distributed
-		int combPos = current_x - all the numbers that came before; // the position of a combination in the output
-		
-		// each thread gets assign a chunk to work on
-		// each thread will have about the same number of chunks
-		// to work on throughout the lifetime of the program
-		for(int current_x = me; current_x < n-m+1; current_x+=1) {	
-			int temp;
+			// initialize comb array
 			for (int i = 0; i < m; ++i) {
-				temp = comb[i] + current_x;
-				combvec[i] = x[temp];
-			}
-			NumericVector cv(combvec);
-			retlist[combPos] = cv;
-			combPos++;
-			while(next_comb(comb, m, temp_n-current_x))  {
-				int temp;
-				for (int i = 0; i < m; ++i) {
-					temp = comb[i] + current_x;
-					combvec[i] = x[temp];
-				}
-				NumericVector cv(combvec);
-				retlist[combPos] = cv;
-				combPos++;
-			}
-
-			// reset comb array for the next chunk this thread will work on
-			for(int i = 0; i < m; i++) {
 				comb[i] = i;
 			}
+			
+			int temp_n = n;
+			int chunkNum = 1; // the number of chunk that has been distributed
+			
+			// each thread gets assign a chunk to work on
+			// each thread will have about the same number of chunks
+			// to work on throughout the lifetime of the program
+			for(int current_x = me; current_x < n-m+1; current_x+=1) {
+				int temp;
+				#pragma omp critical
+				{
+					for (int i = 0; i < m; ++i) {
+						temp = comb[i] + current_x;
+						retmat(i, combPos) = x[temp];
+					}	
+				}
+				combPos++;
+				while(next_comb(comb, m, temp_n-current_x))  {
+					int temp;
+					#pragma omp critical
+					{
+						for (int i = 0; i < m; ++i) {
+							temp = comb[i] + current_x;
+							retmat(i, combPos) = x[temp];
+						}	
+					}
+					combPos++;
+				}
 
-			chunkNum++; // increment chunkNum for the next chunk distribution
-			// determine which element this thread will work on
-			if (chunkNum % 2 == 0) {
-				current_x = current_x + 2 * (nth - me - 1);
-			}
-			else {
-				current_x = current_x + 2 * me;
+				// reset comb array for the next chunk this thread will work on
+				for(int i = 0; i < m; i++) {
+					comb[i] = i;
+				}
+
+				chunkNum++; // increment chunkNum for the next chunk distribution
+				// determine which element this thread will work on
+				if (chunkNum % 2 == 0) {
+					current_x = current_x + 2 * (nth - me - 1);
+				}
+				else {
+					current_x = current_x + 2 * me;
+				}
 			}
 		}
 	}
-		
-	return retlist;
+	else {
+		#pragma omp parallel
+		{
+			int *comb = new int[m]; 
+			for (int i = 0; i < m; ++i) {
+				comb[i] = i;
+			}
+			
+			int temp_n = n;			
+			#pragma omp for schedule(runtime)
+			for(int current_x = 0; current_x < (n - m + 1); current_x++) {
+				int temp;
+				#pragma omp critical
+				{
+					for (int i = 0; i < m; ++i) {
+						temp = comb[i] + current_x;
+						retmat(i, combPos) = x[temp];
+					}	
+				}
+				combPos++;
+				while(next_comb(comb, m, temp_n-current_x))  {
+					int temp;
+					#pragma omp critical
+					{
+						for (int i = 0; i < m; ++i) {
+							temp = comb[i] + current_x;
+							retmat(i, combPos) = x[temp];
+						}	
+					}
+					combPos++;
+				}
+
+				for(int i = 0; i < m; i++) {
+					comb[i] = i;
+				}
+
+			}
+		}
+	}		
+	return retmat;
 }

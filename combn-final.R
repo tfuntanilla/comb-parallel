@@ -1,8 +1,9 @@
-combn <- function(x, m, fun = NULL, simplify = TRUE, sched = NULL, chunksize = NULL, ...)
+combn <- function(x, m, fun = NULL, simplify = TRUE, 
+	sched = NULL, chunksize = NULL, ...)
 {
 	require(Rcpp)
-	require(combinat) # necessary for nCm in line 24
-	dyn.load("combn.so")
+	#require(combinat) # necessary for nCm in line 24
+	dyn.load("combn-final.so")
 
 	# Input checks taken directly from combn source code
 	if(length(m) > 1) {
@@ -22,48 +23,30 @@ combn <- function(x, m, fun = NULL, simplify = TRUE, sched = NULL, chunksize = N
 
 	nofun <- is.null(fun)
 	count <- 10
-	out <- vector("list", count)
-	a <- 1:m
-	out[[1]] <- if(nofun) x[a] else fun(x[a], ...)
-	if(simplify) {
-		dim.use <- NULL
-		if(nofun) {
-			if(count > 1)
-				dim.use <- c(m, count)
-		}
-		else {
-			out1 <- out[[1]]
-			d <- dim(out1)
-			if(count > 1) {
-				if(length(d) > 1)
-				  dim.use <- c(d, count)
-				else if(length(out1) > 1)
-				  dim.use <- c(length(out1), count)
-			}
-			else if(length(d) > 1)
-				dim.use <- d
-		}
+
+	# Error checks for scheduling parameters: sched and chunksize
+	# R handles error when 'sched' is not a string/character vector
+	# If sched is provided, then sched must be static, dynamic, guided, or NULL
+	if (!grepl('static', sched) && !grepl('dynamic', sched) && !grepl('guided', sched) && !is.null(sched)) {
+			stop("Scheduling policy must be static, dynamic, or guided.")
+	}
+	# Set to default values
+	if (is.null(sched) && is.null(chunksize)) {
+		sched <- 'static'
+		chunksize <- 1
+	}
+	else if (!is.null(sched) && is.null(chunksize)) {
+		chunksize <- 1
+	}
+	else if (is.null(sched) && !is.null(chunksize)) { # if sched is provided, but chunk size is not
+		sched <- 'static'
+		warning("Value for 'sched' is replaced with default 'static' and 'chunksize' is overriden with default value.")
 	}
 
-	#retmat <- matrix(0, m, count)
-	
-	#charCheck <- is.letter(x)
-	#if (match('TRUE', charCheck)) {
-	#	isChar <- 1
-	#}
+	retmat <- matrix(0, m, count)
+	retmat <- .Call("combn", x, m, n, count, sched, chunksize)
 
-	#retmat <- .Call("combn", x, m, n, count, sched, chunksize)
-	#return(retmat)
-
-	out <- .Call("combn", x, m, n, count)
-
-	if(simplify) {
-		if(is.null(dim.use))
-			out <- unlist(out)
-		else out <- array(unlist(out), dim.use)
-	}
-	
-	return(out)
+	return(retmat)
 
 }
 
