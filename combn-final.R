@@ -76,7 +76,19 @@ combn <- function(x, m, fun = NULL, simplify = TRUE,
 		}
 	}
 
-	return(retmat)
+
+	if (!is.null(fun)) {
+		apply(retmat, 2, fun) # apply function to columns
+	}
+
+	if (simplify) {
+		out <- retmat
+	}
+	else {
+		out <- split(retmat, c(col(retmat)))
+	}
+
+	return(out)
 
 }
 
