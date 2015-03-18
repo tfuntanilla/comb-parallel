@@ -27,16 +27,17 @@ int next_comb(int *comb, int m, int n)
 	return 1;
 }
 
-RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP chunksize_, SEXP out)
+RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP chunksize_, SEXP pos_, SEXP out)
 {
 	// Convert SEXP variables to appropriate C++ types
 	NumericVector x(x_);
+	NumericVector pos(pos_);
 	int m = as<int>(m_), n = as<int>(n_), nCm = as<int>(nCm_), chunksize = as<int>(chunksize_);
 	string sched = as<string>(sched_);
 
 
 	NumericMatrix retmat(m, nCm);
-	int combPos = 0; // the position of a combination in the output	
+	//int mypos = 0; // the position of a combination in the output	
 	
 	if (sched == "dynamic") {
 		omp_set_schedule(omp_sched_dynamic, chunksize);
@@ -65,30 +66,27 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 			
 			int temp_n = n;
 			int chunkNum = 1; // the number of chunk that has been distributed
-			
+			int mypos;
 			// each thread gets assign a chunk to work on
 			// each thread will have about the same number of chunks
 			// to work on throughout the lifetime of the program
 			for(int current_x = me; current_x < n-m+1; current_x+=1) {
 				int temp;
-				#pragma omp critical
-				{
-					for (int i = 0; i < m; ++i) {
-						temp = comb[i] + current_x;
-						retmat(i, combPos) = x[temp];
-					}	
-				}
-				combPos++;
+				mypos = pos[current_x];
+				for (int i = 0; i < m; ++i) {
+					temp = comb[i] + current_x;
+					retmat(i, mypos) = x[temp];
+				}	
+	
+				mypos++;
 				while(next_comb(comb, m, temp_n-current_x))  {
 					int temp;
-					#pragma omp critical
-					{
-						for (int i = 0; i < m; ++i) {
-							temp = comb[i] + current_x;
-							retmat(i, combPos) = x[temp];
-						}	
+					for (int i = 0; i < m; ++i) {
+						temp = comb[i] + current_x;
+						retmat(i, mypos) = x[temp];
+					
 					}
-					combPos++;
+					mypos++;
 				}
 
 				// reset comb array for the next chunk this thread will work on
@@ -108,6 +106,8 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 		}
 	}
 	else {
+		int mypos;
+
 		#pragma omp parallel
 		{
 			int *comb = new int[m]; 
@@ -119,24 +119,19 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 			#pragma omp for schedule(runtime)
 			for(int current_x = 0; current_x < (n - m + 1); current_x++) {
 				int temp;
-				#pragma omp critical
-				{
-					for (int i = 0; i < m; ++i) {
-						temp = comb[i] + current_x;
-						retmat(i, combPos) = x[temp];
-					}	
-				}
-				combPos++;
+				mypos = pos[current_x];
+				for (int i = 0; i < m; ++i) {
+					temp = comb[i] + current_x;
+					retmat(i, mypos) = x[temp];
+				}	
+				mypos++;
 				while(next_comb(comb, m, temp_n-current_x))  {
 					int temp;
-					#pragma omp critical
-					{
-						for (int i = 0; i < m; ++i) {
+					for (int i = 0; i < m; ++i) {
 							temp = comb[i] + current_x;
-							retmat(i, combPos) = x[temp];
-						}	
-					}
-					combPos++;
+							retmat(i, mypos) = x[temp];
+					}	
+					mypos++;
 				}
 
 				for(int i = 0; i < m; i++) {
