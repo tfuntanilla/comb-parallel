@@ -1,3 +1,9 @@
+/****************************************************************************
+OpenMP (C++) implementation of R's combn() function from the combinat package
+
+Called from R using .Calll() through Rcpp
+*****************************************************************************/
+
 #include <Rcpp.h>
 #include <omp.h>
 
@@ -5,7 +11,7 @@ using namespace std;
 using namespace Rcpp;
 
 // Computes the indices of the next combination to generate 
-// The indices then get map to the actual values from the input vector
+// The indices then get mapped to the actual values from the input vector
 int next_comb(int *comb, int m, int n)
 {
 	int i = m - 1;	
@@ -30,15 +36,14 @@ int next_comb(int *comb, int m, int n)
 RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP chunksize_, SEXP pos_, SEXP out)
 {
 	// Convert SEXP variables to appropriate C++ types
-	NumericVector x(x_);
-	NumericVector pos(pos_);
+	NumericVector x(x_); // input vector
+	NumericVector pos(pos_); // position vector for the combinations so that the output is sorted
 	int m = as<int>(m_), n = as<int>(n_), nCm = as<int>(nCm_), chunksize = as<int>(chunksize_);
 	string sched = as<string>(sched_);
 
-
 	NumericMatrix retmat(m, nCm);
-	//int mypos = 0; // the position of a combination in the output	
 	
+	// OpenMP schedule clauses
 	if (sched == "dynamic") {
 		omp_set_schedule(omp_sched_dynamic, chunksize);
 	}
@@ -46,7 +51,7 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 		omp_set_schedule(omp_sched_guided, chunksize);
 	}
 
-	if (sched == "static") {
+	if (sched == "static") { // use the load balancing algorithm
 		#pragma omp parallel
 		{
 			// this thread id, total number of threads, combination indexes array
@@ -66,7 +71,8 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 			
 			int temp_n = n;
 			int chunkNum = 1; // the number of chunk that has been distributed
-			int mypos;
+			int mypos; // variable for the output position
+			
 			// each thread gets assign a chunk to work on
 			// each thread will have about the same number of chunks
 			// to work on throughout the lifetime of the program
@@ -77,14 +83,12 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 					temp = comb[i] + current_x;
 					retmat(i, mypos) = x[temp];
 				}	
-	
 				mypos++;
 				while(next_comb(comb, m, temp_n-current_x))  {
 					int temp;
 					for (int i = 0; i < m; ++i) {
 						temp = comb[i] + current_x;
 						retmat(i, mypos) = x[temp];
-					
 					}
 					mypos++;
 				}
@@ -105,9 +109,8 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 			}
 		}
 	}
-	else {
+	else { // dynamic or guided
 		int mypos;
-
 		#pragma omp parallel
 		{
 			int *comb = new int[m]; 
@@ -137,7 +140,6 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 				for(int i = 0; i < m; i++) {
 					comb[i] = i;
 				}
-
 			}
 		}
 	}		
