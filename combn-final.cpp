@@ -69,7 +69,6 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 				comb[i] = i;
 			}
 			
-			int temp_n = n;
 			int chunkNum = 1; // the number of chunk that has been distributed
 			int mypos; // variable for the output position
 			
@@ -84,7 +83,7 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 					retmat(i, mypos) = x[temp];
 				}	
 				mypos++;
-				while(next_comb(comb, m, temp_n-current_x))  {
+				while(next_comb(comb, m, n-current_x))  {
 					int temp;
 					for (int i = 0; i < m; ++i) {
 						temp = comb[i] + current_x;
@@ -117,8 +116,7 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 			for (int i = 0; i < m; ++i) {
 				comb[i] = i;
 			}
-			
-			int temp_n = n;			
+					
 			#pragma omp for schedule(runtime)
 			for(int current_x = 0; current_x < (n - m + 1); current_x++) {
 				int temp;
@@ -128,7 +126,7 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 					retmat(i, mypos) = x[temp];
 				}	
 				mypos++;
-				while(next_comb(comb, m, temp_n-current_x))  {
+				while(next_comb(comb, m, n-current_x))  {
 					int temp;
 					for (int i = 0; i < m; ++i) {
 							temp = comb[i] + current_x;

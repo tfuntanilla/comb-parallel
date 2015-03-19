@@ -1,9 +1,21 @@
 \subsection{OpenMP}
 
-\subsubsection{Load Balancing}
-Initially, the program was parallelized by directingly using OpenMP's loop directive \texttt{for}. By using the \texttt{for} directive, we are allowing OpenMP to handle the distribution of the tasks to the threads. This makes it easier for the programmer; however, it is not the best way to distribute the tasks. For our program, it caused an extreme load imbalance. Upon The distribution of the task was heavily skewed such that the thread with lower id's generated far more combinations than the thread with higher id's. This is because for each element $i$ in the input vector $x$, the number of combinations that can be generated with $x_{i}$ is larger than that with $x_{i+1}$.\\
+The C++ OpenMP program is called through R via .Call() using the Rcpp interface. It accepts the same input arguments as the original function, can handle the same types of valid inputs, and through new optional arguments, also allows the user to decide on a scheduling policy and chunk size.\\
 \null
-In order to compensate for the load imbalance, the assignment of tasks to the threads was done in a wrap around manner. Using this method, for the first distribution, each thread will work on the element indexed in the same value as their id (e.g. thread 0 on $x[0]$, thread 1 on $x[1]$, and so on). Then, the following distribution depends on the total number of threads, the id of each thread, and the index of its previous assignment. With \texttt{nth} corresponding to the total number of threads and \texttt{me} corresponding to the thread id, the assignment following the initial distribution is determined using the equation:
+Code highlights:\\
+\begin{itemize}
+\item Load balancing algorithm \cite{parallelalgorithm} (next section)
+\item Avoidance of critical sections and barriers
+\end{itemize}
+Other notes:
+\begin{itemize}
+\item Similar to the original function, the OpenMP implementation has a limit on the input/output size. The program terminates if R decides that it cannot allocate enough space for the output.
+\end{itemize}
+
+\subsubsection{Load Balancing}
+Good load balancing is very critical to our program because for each element $i$ in the input vector $x$, the number of combinations that can be generated with $x_{i}$ is larger than that with $x_{i+1}$. A naive task distribution without proper load balancing could heavily skew the distribution of the workload for each thread. For example, directly assigning an $x_{i}$ for each thread will result in the threads with lower id's generating far more combinations (thus, more work) than threads with higher id's).\\
+\null
+In order to compensate for the load imbalance, the assignment of tasks to the threads was done in a wrap around manner. Using this method, for the first distribution, each thread will work on the element indexed in the same value as their id (e.g. thread 0 on $x[0]$, thread 1 on $x[1]$, and so on). Then, the following distribution depends on the total number of threads, the id of each thread, and the index of its previous assignment. With $nth$ corresponding to the total number of threads and $me$ corresponding to the thread id, the assignment following the initial distribution is determined using the equation:
 \begin{equation}
 next\_task = prev\_task + 2 * (nth - me - 1) + 1
 \end{equation}
@@ -18,24 +30,31 @@ In this algorithm, each thread knows which indexes in $x$ to generate combinatio
 \subsubsection{Chunk Size}
 The equations from the section above implicitly defines the chunk size so that each thread gets assigned roughly the same number $x_{i}$'s to work on. It is essentially the number of times task distributions occur in the load balance algorithm, which is roughly $(n-m+1)/nth$.
 
-\subsubsection{Other Performance Tuning Considerations}
-\begin{itemize}
-\item Cache coherency: Coherence overheads occur when two threads access data on the same cache line even though the variables are not related-an instance called as false sharing. In order to prevent instances of false sharing, the threads are made to work so each will access data that is not altered by any other thread.
-\item Synchronization overhead:
-\item 
-\end{itemize}
-
 \subsubsection{Scheduling Policies}
 The load balancing algorithm described in Section 3.1.1 implements a static scheduling policy since the threads are assigned specific tasks and only work on the tasks assigned to them. For the purposes of timing comparisons, additional optional arguments \texttt{sched} and \texttt{chunksize} were added to the function in order to test the speed of the program for the other scheduling policies, namely dynamic and guided. If both arguments are not provided (or set as NULL), the program defaults to the static scheduling policy using the load balancing algorithm. If either dynamic or guided is set, the program uses OpenMP's built-in \texttt{schedule} clause to distribute the tasks to the threads. If the chunksize is not provided, the program sets it to the default chunk size of 1.\\
 \null
 
-We performed various tests using the three scheduling policies and experimented with different chunk sizes (for dynamic and guided). It was clear that the load balancing algorithm using static scheduling was the fastest. It eliminates the communication overhead of the dynamic and guided policies since the threads don't have to repeatedly access the task farm for work to, and idleness is still reduced because of the way the tasks are spread among the threads.\\
+We performed various tests using the three scheduling policies and experimented with different chunk sizes (for dynamic and guided). It was clear that the load balancing algorithm using static scheduling was the fastest. It eliminates the communication overhead of the dynamic and guided scheduling policies since the threads don't have to repeatedly access the task farm for work, and idleness is still reduced because of the way the tasks are distributed among the threads.\\
 \null
 
-Therefore, the static method is the one compared to the original function in the next section.
+Hence, the static method is the one compared to the original function in the timinng comparisons.
+
+\subsubsection{Cache and Other Performance Tuning Considerations}
+The following performance tuning applies only to the load balancing algorithm described in 3.1.1.
+
+\begin{itemize}
+\item Avoiding instances of false sharing: In order to avoid instances of false sharing (and the resulting cache coherence overheads), we avoided having shared data that could be modified by multiple threads. The data frequently accessed and shared by the threads in the program, such as the input and position vectors are read-only data. Hence, cache lines are not invalidated whenever data from these vectors are accessed. The main shared data structure that is modified by all threads is the output matrix \texttt{retmat}, but the threads never have to perform any read on this data.
+
+\item Synchronization overhead: The threads are made to work as independent of each other as possible. The only synchronization occurs implicitly at the end of the \texttt{parallel} pragma.
+
+\item Avoidance of critical sections and barriers
+
+\end{itemize}
+
+
 
 \subsubsection{Comparative Analysis}
-The following inputs were used for comparing the speeds of the source code and our OpenMP implementation. OpenMP was run using 8 threads.\\
+The following test inputs were used for comparing the speeds of the source code and our OpenMP implementation using 8 threads.\\
 \null
 
 \texttt{> system.time(combn(c(1:100), 2))}\\
@@ -65,8 +84,9 @@ Here are the total number of combinations generated for each test above:\\
 \texttt{[1] 2573000}\\
 \null
 
-The elapsed time recorded for each test is the average of three trials. The OpenMP parallelization massively improved the performance of the function. The improvement is invaluable for even bigger inputs (e.g. \texttt{nCm(100, 5)}). The OpenMP implementation still manages to produce an output under 5 seconds, while the original function takes several minutes.\\
+The elapsed time recorded for each test is the average of three trials. The OpenMP parallelization massively improved the performance of the function. The improvement becomes increasingly invaluable as the input size increases (e.g. \texttt{nCm(100, 5)}, the OpenMP implementation still manages to produce an output under 5 seconds, while the original function takes several minutes).\\
 \null
 
+The following plot illustrates the differences in the speeds of the two implementations.\\
 \includegraphics{openmp.pdf}
 

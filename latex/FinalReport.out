@@ -1,9 +1,15 @@
-\BOOKMARK [1][-]{section.0.1}{Objectve}{}% 1
-\BOOKMARK [1][-]{section.0.2}{Function}{}% 2
-\BOOKMARK [2][-]{subsection.0.2.1}{Description}{section.0.2}% 3
-\BOOKMARK [2][-]{subsection.0.2.2}{Reasons for Selection}{section.0.2}% 4
-\BOOKMARK [1][-]{section.0.3}{Parallel Implementations}{}% 5
-\BOOKMARK [2][-]{subsection.0.3.1}{OpenMP}{section.0.3}% 6
-\BOOKMARK [1][-]{section.0.4}{Timing Comparisons}{}% 7
-\BOOKMARK [1][-]{section.0.5}{Conclusions}{}% 8
-\BOOKMARK [1][-]{section.Alph0.1}{Appendix}{}% 9
+\BOOKMARK [1][-]{section.1}{Objective}{}% 1
+\BOOKMARK [1][-]{section.2}{Function}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Description}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Why Speedups Are Possible}{section.2}% 4
+\BOOKMARK [1][-]{section.3}{Parallelization}{}% 5
+\BOOKMARK [2][-]{subsection.3.1}{OpenMP}{section.3}% 6
+\BOOKMARK [3][-]{subsubsection.3.1.1}{Load Balancing}{subsection.3.1}% 7
+\BOOKMARK [3][-]{subsubsection.3.1.2}{Chunk Size}{subsection.3.1}% 8
+\BOOKMARK [3][-]{subsubsection.3.1.3}{Scheduling Policies}{subsection.3.1}% 9
+\BOOKMARK [3][-]{subsubsection.3.1.4}{Cache and Other Performance Tuning Considerations}{subsection.3.1}% 10
+\BOOKMARK [3][-]{subsubsection.3.1.5}{Comparative Analysis}{subsection.3.1}% 11
+\BOOKMARK [1][-]{section.4}{Timing Comparisons}{}% 12
+\BOOKMARK [1][-]{section.5}{Conclusions}{}% 13
+\BOOKMARK [1][-]{appendix.A}{Appendix}{}% 14
+\BOOKMARK [1][-]{lstnumber.-2.146}{References}{}% 15
