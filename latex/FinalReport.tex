@@ -41,7 +41,7 @@
 Choose some function \textbf{\texttt{g()}} in R, either built-in to base R or in a CRAN package, to parallelize. Do so in Snow, OpenMP and CUDA (or substitute Thrust for either CUDA or OpenMP but not both), and run timing tests.
 
 \section{Function}
-We have chose to parallelize the function \texttt{combn()} from the ``combinat" package in CRAN.
+We chose to parallelize the function \texttt{combn()} from the ``combinat" package in CRAN.
 \subsection{Description}
 Taken from the official documentation:\cite{crandoc}\\
 \null
@@ -58,13 +58,15 @@ We have tried \texttt{combn()}, which has the inputs \texttt{combn(x, m, fun=NUL
 
 \section{Parallelization}
 
-%\input{./rsnow.tex}
-
 \input{./openmp.tex}
 
-%\input{./cuda.tex}
+\input{./snow.tex}
+
+\input{./thrust.tex}
 
 \section{Timing Comparisons}
+
+\input{./timingcomparisons.tex}
 
 \section{Conclusions}
 
@@ -86,15 +88,15 @@ We have tried \texttt{combn()}, which has the inputs \texttt{combn(x, m, fun=NUL
 \addcontentsline{toc}{section}{References}
 
 \begin{thebibliography}{9}
-\bibitem{parallelalgorithm} 
-Junior Barrera, Alfredo Goldman, and Martha Torres\\
-\textit{A Parallel Algorithm for Enumerating Combinations}
-\texttt{http://www.ime.usp.br/~gold/ipp03v3.pdf}
- 
 \bibitem{crandoc} 
-Scott Chasalow\\
+Scott Chasalow
 \textit{Package `combinat'}
 \texttt{http://cran.r-project.org/web/packages/combinat/combinat.pdf}
+
+\bibitem{parallelalgorithm} 
+Junior Barrera, Alfredo Goldman, and Martha Torres
+\textit{A Parallel Algorithm for Enumerating Combinations}
+\texttt{http://www.ime.usp.br/~gold/ipp03v3.pdf}
  
 
 \end{thebibliography}

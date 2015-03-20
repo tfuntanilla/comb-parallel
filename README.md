@@ -1,13 +1,15 @@
-Final copies:
+Final copies are all in /src disregard all the files outside
 OpenMP
 - combn-final.cpp
 - combn-final.R
 
 Snow
-- combn-snow.R
+- combnsnow-final.R
 
 To Do:
 Package Function
+
+
 Latex:
 - Thrust
 - Timing Comparisons
