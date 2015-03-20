@@ -1,6 +1,14 @@
-combn-final.cpp and combn-final.R will be the final copies for openmp
-- currently testing program for different inputs
+Final copies:
+OpenMP
+- combn-final.cpp
+- combn-final.R
 
-Latex files
-- put openmp, snow, and thrust in different files so it's more organized
-- graphics/charts/tables/figures etc will be added later
+Snow
+- combn-snow.R
+
+To Do:
+Package Function
+Latex:
+- Thrust
+- Timing Comparisons
+- Account of work done by each member
