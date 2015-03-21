@@ -1,4 +1,8 @@
-// R function combn parallelized with thrust
+/*********************************************************************************
+Thrust (C++) implementation of R's combn() function from the CRAN combinat package
+
+Called from combn-thrust.R using .Calll() through Rcpp interface
+**********************************************************************************/
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/random.h>

@@ -61,7 +61,7 @@ The following performance tuning applies only to the load balancing algorithm de
 
 
 \subsubsection{Comparative Analysis}
-The following input sizes were used for comparing the speeds of the source code and our OpenMP implementation using 8 threads set on the environment:\\
+The following input sizes were used for comparing the speeds of the source code and our OpenMP implementation using 8 threads set on the environment. The function \texttt{nCm()} is also from the CRAN ``combinat" package. \texttt{nCm()} is the function that calculates the binomial coefficient (``$n$ choose $m$") or the total number of combinations of size $m$ given $n$ elements. The third argument controls the rounding of the integers. \cite{crandoc}\\
 \null
 \texttt{> nCm(100, 2, 0.10000000000000002)}\\
 \texttt{[1] 4950}\\

@@ -21,7 +21,7 @@ keywordstyle=\color{blue},
 escapeinside={}
 }
 
-% OPENMP R FILE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% OPENMP R FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{lstlisting}
 ####################################################################################
@@ -271,7 +271,7 @@ escapeinside={}
 }
 
 
-% OPENMP C++ FILE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% OPENMP C++ FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{lstlisting}
 /*********************************************************************************
@@ -422,7 +422,7 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP sched_, SEXP ch
 \end{lstlisting}
 }
 
-% SNOW %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SNOW %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 {\lstset{
 language=R,
 backgroundcolor = \color{white},
@@ -711,7 +711,7 @@ mycombn <- function(cls, x, m) {
 }
 
 
-%THRUST%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% THRUST R FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 {\lstset{
 language=R,
 backgroundcolor = \color{white},
@@ -734,8 +734,6 @@ breakatwhitespace=false,
 keywordstyle=\color{blue},
 escapeinside={}
 }
-
-% OPENMP R FILE
 
 \begin{lstlisting}
 ####################################################################################
@@ -936,6 +934,8 @@ function(n, m, tol = 9.9999999999999984e-009)
 }
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% THRUST C++ FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 {\lstset{
 language=C++,
 backgroundcolor = \color{white},
@@ -963,7 +963,11 @@ escapeinside={}
 % THRUST C++ FILE
 
 \begin{lstlisting}
-// R function combn parallelized with thrust
+/*********************************************************************************
+Thrust (C++) implementation of R's combn() function from the CRAN combinat package
+
+Called from combn-thrust.R using .Calll() through Rcpp interface
+**********************************************************************************/
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/random.h>
@@ -1088,14 +1092,13 @@ RcppExport SEXP combnthrust(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP out){
     
 }
 
+
 \end{lstlisting}
 }
 
-
-
-\null
+\newpage
 % Account of work done %
-\textbf{\LARGE{Account of Work Done}}\\
+\textbf{\Large{Account of Work Done}}\\
 \null
 Trisha Funtanilla: I worked in the OpenMP implementation, putting together the Rcpp interface, error checks, and output formatting for all of the codes, writing the OpenMP and Snow section in the report, and creating the timing comparison plots.
 \\
