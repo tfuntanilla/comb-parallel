@@ -20,10 +20,11 @@
   # inserted into this file saw combinat need not be installed when program is run
 ####################################################################################
 
-combnthrust <- function(x, m, fun = NULL, simplify = TRUE, ...)
+combnthrust<- function(x, m, fun = NULL, simplify = TRUE, ...)
 {
 	require(Rcpp)
-	dyn.load("combn-thrust.so")
+	#require(combinat) # necessary for nCm in line 24
+	dyn.load("combnthrust.so")
 
 	# Input checks taken directly from combn source code
 	if(length(m) > 1) {
@@ -44,6 +45,26 @@ combnthrust <- function(x, m, fun = NULL, simplify = TRUE, ...)
 	nofun <- is.null(fun)
 	count <- nCm(n, m, 0.10000000000000002)
 
+	# Error checks for the scheduling variables: sched and chunksize
+	# R handles the error when 'sched' is not a string/character vector
+	
+	# If sched is provided, then sched must be static, dynamic, guided, or NULL
+	# if (!grepl('static', sched) && !grepl('dynamic', sched) && !grepl('guided', sched) && !is.null(sched)) {
+	# 		stop("Scheduling policy must be static, dynamic, or guided.")
+	# }
+	# # Set to default values depending on what is/are provided
+	# if (is.null(sched) && is.null(chunksize)) {
+	# 	sched <- 'static'
+	# 	chunksize <- 1
+	# }
+	# else if (!is.null(sched) && is.null(chunksize)) {
+	# 	chunksize <- 1
+	# }
+	# else if (is.null(sched) && !is.null(chunksize)) { # if sched is provided, but chunk size is not
+	# 	sched <- 'static'
+	# 	warning("'sched' is replaced with default 'static' and 'chunksize' is overriden with default value.")
+	# }
+
 	# Checks if input vector x has characters
 	# If so, then convert chars to their ASCII decimal values
 	# Operate on the ASCII decimal values for the chars
@@ -63,26 +84,11 @@ combnthrust <- function(x, m, fun = NULL, simplify = TRUE, ...)
 		}
 		x <- strtoi(x, base=10)
 	}
-
-
-	# Calculate positions for output
-	pos <- vector()
-	temp_n <- n
-	for (i in 1:(n-m+1)) {
-		pos <- c(pos, nCm(temp_n-i, m-1))
-	}
-	temp <- pos[1]
-	pos[1] <- 0
-	for (i in 2:length(pos)) {
-		temp2 <- pos[i]
-		pos[i] <- temp
-		temp <- pos[i] + temp2
-	}
-
+	
 	# Initialize output matrix
 	retmat <- matrix(0, m, count)
 	# Call the function through Rcpp
-	retmat <- .Call("combn", x, m, n, count)
+	retmat <- .Call("combnthrust", x, m, n, count)
 
 	# Convert from ASCII decimal values back to chars if necessary
 	if (!is.na(ischarx)) {
@@ -112,16 +118,10 @@ combnthrust <- function(x, m, fun = NULL, simplify = TRUE, ...)
 	return(out)
 }
 
-####################################################################################
-# Helper Functions
-####################################################################################
-
 # function to check if there's a char in x
 is.letter <- function(x) grepl("[[:alpha:]]", x)
-
 # convert char to ascii decimal value
 asc <- function(x) { strtoi(charToRaw(x),16L) }
-
 # convert decimal value to ascii character
 chr <- function(n) { rawToChar(as.raw(n)) }
 

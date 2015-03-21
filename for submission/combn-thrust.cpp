@@ -83,7 +83,7 @@ struct comb {
 
 };
 
-RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP out){
+RcppExport SEXP combnthrust(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP out){
 	NumericVector x(x_);
 	int m = as<int>(m_), n = as<int>(n_), nCm = as<int>(nCm_);
 	NumericMatrix retmat(m, nCm);
@@ -93,10 +93,9 @@ RcppExport SEXP combn(SEXP x_, SEXP m_, SEXP n_, SEXP nCm_, SEXP out){
     
     // Calculate combination possibilities for each element in the list that
     // start with the element in the 0th index
-    int tmp_n = n; // Why do we need a tmp_n ??
     int k = 0;
     for(int i = 0; i < (n-m+1); i++){
-        pos[i] = boost::math::binomial_coefficient<double>(tmp_n - i - 1, m-1);
+        pos[i] = boost::math::binomial_coefficient<double>(n - i - 1, m-1);
         k++;
     }
     // Calcluate the position vector respective to the possiblities
