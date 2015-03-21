@@ -69,6 +69,7 @@ We have tried \texttt{combn()}, which has the inputs \texttt{combn(x, m, fun=NUL
 \input{./timingcomparisons.tex}
 
 \section{Conclusions}
+We expected Thrust to be the fastest out of the three parallel implementations of the \texttt{combn()} function, due to the GPU scheduling large number of threads. However, OpenMP was the fastest because we were able to efficiently divide the workload among the threads. Thrust ended up running slower than our OpenMP implementation, possibly due to Thrust dynamically scheduling the threads in the GPU. Thrust could have run faster if it was further optimized to reduce the amount of overhead by modifying our functor or incorporating other Thrust functions. As for Snow, we expected it to be much faster especially with larger input since the communication overhead would have been hidden by the long calculations. However, Snow ended up performing the poorest, likely because there were also significant parts of the code that were not parallelized (sorting and handling of the output).
 
 
 %---------------- End of Body ----------------------%
@@ -108,14 +109,16 @@ Norm Matloff
 \textit{Function Documentation}
 \texttt{https://thrust.github.io/doc/group\_\_modifying.html}
 
+\bibitem{gpuandr} 
+Norm Matloff
+\textit{Parallel Programming with GPUs and R}
+\texttt{http://blog.revolutionanalytics.com/2015/01/parallel-programming-
+with-gpus-and-r.html}
+
 \bibitem{nextcomb}
 \textit{Generating Combinations}
 \texttt{https://compprog.wordpress.com/2007/10/17/generating-combinations-1/}
 
-\bibitem{gpuandr} 
-Norm Matloff
-\textit{Parallel Programming with GPUs and R}
-\texttt{http://blog.revolutionanalytics.com/2015/01/parallel-programming-with-gpus-and-r.html}
 
 \end{thebibliography}
 
